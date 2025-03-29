@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
-
+from django.core import validators as v
+from .validators import validate_name, validate_phone_number
 
 # Client Model
 class Client(models.Model):
@@ -10,20 +11,31 @@ class Client(models.Model):
     # Basic information
     first_name = models.CharField(
         max_length=200,
-        help_text="First name of the client."
+        null=False,
+        blank=False,
+        help_text="First name of the client.",
+        validators=[v.MinLengthValidator(2), validate_name]
     )
     last_name = models.CharField(
         max_length=200,
-        help_text="Last name of the client."
+        null=False,
+        blank=False,
+        help_text="Last name of the client.",
+        validators=[v.MinLengthValidator(2), validate_name]
     )
     email = models.EmailField(
         max_length=254,         # Standard max length for emails
         unique=True,            # Ensures no two clients have the same email
+        null=False,
+        blank=False,
         help_text="Client's primary email address."
     )
     phone_number = models.CharField(
         max_length=20,          # Allows for various phone number formats
-        help_text="Client's primary phone number."
+        null=False,
+        blank=False,
+        help_text="Client's primary phone number.",
+        validators=[v.MinLengthValidator(2), validate_phone_number]
     )
 
     # Address Information (Optional)
@@ -50,7 +62,7 @@ class Client(models.Model):
     )
 
     class Meta:
-        ordering = ['last_name'] # Order clients alphabetically by last name by default
+        ordering = ['last_name', 'first_name'] # Order clients alphabetically by last name by default
         verbose_name = "Client"
         verbose_name_plural = "Clients"
 
