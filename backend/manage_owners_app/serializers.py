@@ -43,3 +43,8 @@ class ClientSerializer(serializers.ModelSerializer):
             'notes',
             'date_added'
         ]
+        # # Make the original foreign key field write_only to accept
+        # # a client ID when creating/updating addresses via this serializer
+        # extra_kwargs = {
+        #     'client': {'write_only': True}
+        # }

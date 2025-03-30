@@ -4,6 +4,15 @@ from django.core import validators as v
 from .validators import validate_name, validate_phone_number
 
 class Address(models.Model):
+    """
+    TODO: Add country field
+        pip install django-countries
+        django-countries.CountryField
+    TODO: Add international support for phone numbers
+        pip install django-phonenumber-field[phonenumbers]
+        PhoneNumberField
+        add 'phonenumber_field' to INSTALLED_APPS in settings.py
+    """
     
     client = models.ForeignKey(
         'Client',
@@ -21,20 +30,31 @@ class Address(models.Model):
         max_length=10,
         choices=ADDRESS_TYPE_CHOICES,
         default='HOME',
+        blank=False,
         help_text="Type of address."
     )
-    street_address_1 = models.CharField(max_length=255)
+    street_address_1 = models.CharField(
+        max_length=255,
+        blank=False,
+        help_text="Primary street address line (e.g., '123 Main St'). Required."
+    )
     street_address_2 = models.CharField(
         max_length=255, 
-        blank=True)
-    city = models.CharField(max_length=100)
+        blank=True,
+        help_text="Secondary street address line (e.g., 'Apt 4B', 'Suite 100'). Optional.")
+    city = models.CharField(
+        max_length=100,
+        help_text="City name. Required.")
     state_province = models.CharField(
         "State / Province / Region", 
-        max_length=20, 
-        blank=True) # Blank if not applicable everywhere
+        max_length=50, 
+        blank=True,
+        help_text="State, province, or region name. Optional.") # Blank if not applicable everywhere
     postal_code = models.CharField(
         "Postal / Zip Code",
-        max_length=20)
+        max_length=20,
+        blank=False,
+        help_text="Postal or ZIP code. Required.")
     
     class Meta:
         verbose_name_plural = "Addresses"
@@ -61,14 +81,14 @@ class Client(models.Model):
         max_length=200,
         null=False,
         blank=False,
-        help_text="First name of the client.",
+        help_text="First name of the client. Required.",
         validators=[v.MinLengthValidator(2), validate_name]
     )
     last_name = models.CharField(
         max_length=200,
         null=False,
         blank=False,
-        help_text="Last name of the client.",
+        help_text="Last name of the client. Required.",
         validators=[v.MinLengthValidator(2), validate_name]
     )
     email = models.EmailField(
@@ -76,21 +96,15 @@ class Client(models.Model):
         unique=True,            # Ensures no two clients have the same email
         null=False,
         blank=False,
-        help_text="Client's primary email address."
+        help_text="Client's primary email address. Required."
     )
     phone_number = models.CharField(
         max_length=20,          # Allows for various phone number formats
         null=False,
         blank=False,
-        help_text="Client's primary phone number.",
+        help_text="Client's primary phone number. Required.",
         validators=[v.MinLengthValidator(2), validate_phone_number]
     )
-
-    # Address Information (Optional)
-    # address = models.TextField(
-    #     blank=True,
-    #     help_text="Client's physical address (optional)."
-    # )
 
     # Tracking Information
     date_added = models.DateTimeField(
@@ -106,7 +120,7 @@ class Client(models.Model):
     # Optional general notes about the client
     notes = models.TextField(
         blank=True,
-        help_text="General notes about the client (optional)."
+        help_text="General notes about the client. Optional."
     )
 
     class Meta:
