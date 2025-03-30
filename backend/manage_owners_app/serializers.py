@@ -38,7 +38,7 @@ class ClientSerializer(serializers.ModelSerializer):
             'last_name',
             'email',
             'phone_number',
-            'addresses,'
+            'addresses',
             'is_active',
             'notes',
             'date_added'
