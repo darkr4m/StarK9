@@ -3,6 +3,54 @@ from django.utils import timezone
 from django.core import validators as v
 from .validators import validate_name, validate_phone_number
 
+class Address(models.Model):
+    
+    client = models.ForeignKey(
+        'Client',
+        on_delete=models.CASCADE,
+        related_name='addresses',
+        help_text="The client this address belongs to."
+    )
+    ADDRESS_TYPE_CHOICES = [
+        ('HOME', 'Home'),
+        ('WORK', 'Work'),
+        ('BILLING', 'Billing'),
+        ('OTHER', 'Other')
+    ]
+    address_type = models.CharField(
+        max_length=10,
+        choices=ADDRESS_TYPE_CHOICES,
+        default='HOME',
+        help_text="Type of address."
+    )
+    street_address_1 = models.CharField(max_length=255)
+    street_address_2 = models.CharField(
+        max_length=255, 
+        blank=True)
+    city = models.CharField(max_length=100)
+    state_province = models.CharField(
+        "State / Province / Region", 
+        max_length=20, 
+        blank=True) # Blank if not applicable everywhere
+    postal_code = models.CharField(
+        "Postal / Zip Code",
+        max_length=20)
+    
+    class Meta:
+        verbose_name_plural = "Addresses"
+        #  Ensure one client doesn't have two 'HOME' addresses, etc.
+        unique_together = [['client', 'address_type']]
+
+    def __str__(self):
+        address_parts = filter(None, [
+            self.street_address_1,
+            self.street_address_2,
+            self.city,
+            self.state_province,
+            self.postal_code
+        ])
+        return F"{self.client} - {self.get_address_type_display()}: {', '.join(address_parts)}"
+
 # Client Model
 class Client(models.Model):
     """
@@ -39,10 +87,10 @@ class Client(models.Model):
     )
 
     # Address Information (Optional)
-    address = models.TextField(
-        blank=True,
-        help_text="Client's physical address (optional)."
-    )
+    # address = models.TextField(
+    #     blank=True,
+    #     help_text="Client's physical address (optional)."
+    # )
 
     # Tracking Information
     date_added = models.DateTimeField(
@@ -68,3 +116,5 @@ class Client(models.Model):
 
     def __str__(self):
         return f"{self.last_name}, {self.first_name}"
+    
+
