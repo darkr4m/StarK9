@@ -44,6 +44,7 @@ class Address(models.Model):
         help_text="Secondary street address line (e.g., 'Apt 4B', 'Suite 100'). Optional.")
     city = models.CharField(
         max_length=100,
+        blank=False,
         help_text="City name. Required.")
     state_province = models.CharField(
         "State / Province / Region", 
