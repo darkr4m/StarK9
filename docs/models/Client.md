@@ -1,29 +1,65 @@
 # Client Model
-`Client(models.Model)`: Represents a client or dog owner
+
+## Description
+`Client(models.Model)`: Represents a client (dog owner) in the system. This model stores essential contact information, tracking details like when the client was added, and their active status.
+
 ## Fields
-### Name
-`name` (`CharField`): A standard text field for the client's name.\
-`max_length=200` * - reasonable limit for names.\
-**Required by default.**
-### Email
-`email` (`EmailField`): Specifically designed for email addresses, providing basic format validation.
-`max_length=254`
-`unique=True` is important here. It prevents user from accidentally creating duplicate clients with the same email address and ensures the email can potentially be used as a unique identifier later.
-**Required by default.**
-### Phone Number
-`phone_number` (`CharField`): Using CharField instead of a more specific number field allows flexibility for different formats (e.g., `(555) 123-4567`, `+1-555-123-4567`).\
-`max_length=20` - should accommodate most formats.\
-`blank=True` this field is not required when filling out forms (including the Django admin). It will be stored as an empty string ("") in the database if left blank.
-### Address
-`address` (`TextField`): A TextField allows for multi-line input, suitable for a full address.\
-`blank=True` makes it optional.
-### Date Added / Created on
-`date_added` (`DateTimeField`): Records when the client record was created.\
-`default=timezone.now` automatically sets the field to the current date and time when the model instance is created if no value is provided.\
-`editable=False` prevents users from changing this value through forms or the admin interface after creation.\
-### Active Status
-`is_active` (`BooleanField`): filtering out clients you no longer work with without deleting their records (which might contain valuable historical data). Simple true/false flag.\
-`default=True` makes new clients active by default.
-### Notes
-`notes` (`TextField`): A general-purpose field for any other relevant information about the client.\
-`blank=True` makes it optional.
+
+| Field         | Type          | Constraints                             | Description                                                                 | Validators                                                                     |
+|---------------|---------------|-----------------------------------------|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| `id`          | `AutoField`   | Primary Key                             | Auto-incrementing unique identifier. (Implicit)                             | -                                                                              |
+| `first_name`  | `CharField`   | `max_length=200`, Not Null, Not Blank   | **Required.** First name of the client.                                     | `MinLengthValidator(2)`, `validate_name`                                       |
+| `last_name`   | `CharField`   | `max_length=200`, Not Null, Not Blank   | **Required.** Last name of the client.                                      | `MinLengthValidator(2)`, `validate_name`                                       |
+| `email`       | `EmailField`  | `max_length=254`, Unique, Not Null, Not Blank | **Required.** Client's primary email. Must be unique.                     | Django's `EmailValidator` (Implicit)                                           |
+| `phone_number`| `CharField`   | `max_length=20`, Not Null, Not Blank    | **Required.** Client's primary phone number.                              | `MinLengthValidator(2)`, `validate_phone_number`                               |
+| `date_added`  | `DateTimeField`| Not Editable, Default `timezone.now()`  | Timestamp when created. Set automatically. Not user-required (has default). | -                                                                              |
+| `is_active`   | `BooleanField`| Default `True`                          | Designates if client is active. Not user-required (has default).            | -                                                                              |
+| `notes`       | `TextField`   | Blank Allowed                           | **Optional.** General notes about the client.                               | -                                                                              |
+
+## Constraints
+
+* **Database Level:**
+    * `id`: Primary Key. Automatically managed by Django.
+    * `email`: `UNIQUE` constraint. Ensures no two clients can have the same email address.
+    * `first_name`, `last_name`, `email`, `phone_number`: `NOT NULL` constraint. These fields cannot be empty at the database level.
+* **Validation Level:**
+    * `first_name`, `last_name`, `email`, `phone_number`: `blank=False`. These fields are required in forms and the Django admin.
+    * `date_added`: `editable=False`. This field cannot be modified through forms or the Django admin after initial creation.
+    * `is_active`: `default=True`. New clients are active by default.
+    * `notes`: `blank=True`. This field is optional and can be left empty in forms.
+
+## Additional Validators
+
+* **`first_name`**:
+    * `MinLengthValidator(2)`: Ensures the first name has at least 2 characters.
+    * `validate_name`: Custom validator. Checks that the name contains only Unicode letters (a-z, A-Z), whitespace characters, hyphens (`-`), and apostrophes (`'`). Strips leading/trailing whitespace before validation. Raises `ValidationError` with message: "Name can only contain letters, marks, spaces, hyphens, and apostrophes."
+* **`last_name`**:
+    * `MinLengthValidator(2)`: Ensures the last name has at least 2 characters.
+    * `validate_name`: Custom validator. Same checks as for `first_name`.
+* **`email`**:
+    * Implicitly uses Django's built-in `EmailValidator` for standard email format validation.
+* **`phone_number`**:
+    * `MinLengthValidator(2)`: Ensures the phone number has at least 2 characters.
+    * `validate_phone_number`: Custom validator. Checks if the phone number matches common North American formats using regex `^\+?1?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$`. This allows optional country code (+1), optional parentheses around area code, and spaces, hyphens, or dots as separators (e.g., `555-123-4567`, `(555) 123-4567`, `+1.555.123.4567`). Strips leading/trailing whitespace before validation. Raises `ValidationError` with message: "Phone number must be in XXX-XXX-XXXX format." (Note: the regex allows more formats than just the message implies).
+
+## String Representation (`__str__`)
+
+When a `Client` object is represented as a string (e.g., in the Django admin or shell), it displays the client's name in the format: `"LastName, FirstName"`.
+
+*Example:* For a client with `first_name="Jane"` and `last_name="Doe"`, the string representation would be `"Doe, Jane"`.
+
+## JSON Structure (Example)
+
+When serialized (e.g., through Django REST Framework or other API methods), a `Client` object typically looks like this:
+
+```json
+{
+  "id": 1,
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "email": "jane.doe@example.com",
+  "phone_number": "555-123-4567",
+  "date_added": "2025-03-31T18:42:06.543Z", // Example ISO 8601 format (current time used for example)
+  "is_active": true,
+  "notes": "Prefers contact via email."
+}
