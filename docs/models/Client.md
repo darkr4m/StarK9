@@ -48,6 +48,14 @@ When a `Client` object is represented as a string (e.g., in the Django admin or 
 
 *Example:* For a client with `first_name="Jane"` and `last_name="Doe"`, the string representation would be `"Doe, Jane"`.
 
+## Meta Information
+
+The inner `Meta` class provides metadata for the model:
+
+* `ordering = ['last_name', 'first_name']`: Specifies that when querying multiple `Client` objects without an explicit `order_by()` clause, the results should be sorted primarily by `last_name` (ascending) and secondarily by `first_name` (ascending).
+* `verbose_name = "Client"`: Sets the user-friendly singular name for the model, used in the Django admin interface (e.g., "Add Client").
+* `verbose_name_plural = "Clients"`: Sets the user-friendly plural name for the model, used in the Django admin interface (e.g., "View Clients").
+
 ## JSON Structure (Example)
 
 When serialized (e.g., through Django REST Framework or other API methods), a `Client` object typically looks like this:
